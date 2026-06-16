@@ -378,11 +378,6 @@ export default function AuthScreen({ theme, setTheme, onAuthSuccess }: AuthScree
                     className={`block w-full pl-11 pr-4 py-3.5 bg-white/[0.05] border border-white/[0.08] rounded-xl text-white text-sm placeholder-white/20 focus:outline-none transition-all duration-300 font-mono ${getThemeFocusClass()}`}
                   />
                 </div>
-                {isRegister && (
-                  <p className="text-[10px] text-white/30 font-mono mt-1">
-                    * Нууц үг нь таны локал сейфыг түгжих уугал түлхүүр тул мартаж болохгүй!
-                  </p>
-                )}
               </div>
 
               <div className="pt-2">
@@ -391,7 +386,7 @@ export default function AuthScreen({ theme, setTheme, onAuthSuccess }: AuthScree
                   className={`w-full py-4 px-4 bg-white hover:bg-neutral-100 text-black font-semibold rounded-xl transition-all duration-300 font-sans tracking-wide cursor-pointer flex items-center justify-center space-x-2 text-sm active:scale-[0.98]`}
                 >
                   <KeyRound className="w-4 h-4" />
-                  <span>{isRegister ? 'Сейф үүсгэх & Бүртгүүлэх' : 'Сейфийг тайлах (Нэвтрэх)'}</span>
+                  <span>{isRegister ? 'Бүртгүүлэх' : 'Нэвтрэх'}</span>
                 </button>
               </div>
             </form>
@@ -405,18 +400,13 @@ export default function AuthScreen({ theme, setTheme, onAuthSuccess }: AuthScree
                 }}
                 className="w-full py-4 px-4 bg-transparent hover:bg-white/[0.02] border border-white/[0.08] hover:border-white/20 text-white font-medium rounded-xl transition-all duration-200 font-sans tracking-wide cursor-pointer flex items-center justify-center space-x-2 text-sm active:scale-[0.98]"
               >
-                {isRegister ? 'Аль хэдийн бүртгэлтэй? Сейф рүү нэвтрэх' : 'Хувийн шинэ сейф эхлүүлэх үү? Бүртгүүлэх'}
+                {isRegister ? 'Нэвтрэх' : 'Бүртгүүлэх'}
               </button>
 
               <div className="h-[1px] w-full bg-white/5" />
 
-              {/* Extra visual indicators mandated by design */}
-              <div className="flex flex-col items-center space-y-2">
-                <p className="text-[11px] text-white/40 tracking-wide font-sans italic">
-                  &ldquo;Өгөгдөл тань зөвхөн таны хяналтад байна.&rdquo;
-                </p>
-
-                {/* Secure Badge */}
+              {/* Secure Badge */}
+              <div className="flex justify-center">
                 <div className="inline-flex items-center space-x-2 bg-white/[0.04] px-3 py-1 rounded-full border border-white/5 text-[9px] font-mono tracking-widest text-white/50 uppercase">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                   <span>AES-256</span>
