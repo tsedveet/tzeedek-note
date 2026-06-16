@@ -20,6 +20,7 @@ import {
   logoutVault,
   deleteVault,
   VaultData,
+  PendingGoogle,
 } from '@/lib/api-client';
 import VaultBackground from './VaultBackground';
 import CinematicHero from './CinematicHero';
@@ -36,6 +37,8 @@ export default function VaultApp() {
   const [theme, setTheme] = useState<VaultTheme>('emerald');
   const [user, setUser] = useState<VaultUser | null>(null);
   const [encKey, setEncKey] = useState<CryptoKey | null>(null);
+  const [pendingGoogle, setPendingGoogle] = useState<PendingGoogle | null>(null);
+  const [authError, setAuthError] = useState('');
 
   // Core App Store States (loaded on auth, decrypted client-side)
   const [notes, setNotes] = useState<Note[]>([]);
@@ -48,11 +51,19 @@ export default function VaultApp() {
     const savedTheme = localStorage.getItem('vault_active_theme') as VaultTheme | null;
     if (savedTheme) setTheme(savedTheme);
 
+    // Surface OAuth redirect results (?google=1 / ?auth_error=...) then clean URL.
+    const params = new URLSearchParams(window.location.search);
+    const oauthErr = params.get('auth_error');
+    if (oauthErr) setAuthError(oauthErr);
+    if (oauthErr || params.get('google')) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
     (async () => {
       try {
         const cachedKey = await loadCachedEncKey();
         const session = await fetchSession();
-        if (session && session.vault && cachedKey) {
+        if (session?.user && session.vault && cachedKey) {
           const data = await decryptVault<VaultData>(cachedKey, session.vault);
           setUser(session.user);
           setEncKey(cachedKey);
@@ -61,7 +72,10 @@ export default function VaultApp() {
           setPrompts(data.prompts || []);
           setLogs(data.logs || []);
           setIsLoggedIn(true);
-        } else if (session && !cachedKey) {
+        } else if (session?.pendingGoogle) {
+          // Signed in with Google; awaiting the vault passphrase.
+          setPendingGoogle(session.pendingGoogle);
+        } else if (session?.user && !cachedKey) {
           // Server session exists but the in-browser key is gone — require re-login.
           await logoutVault();
         }
@@ -86,6 +100,15 @@ export default function VaultApp() {
     setPrompts(data.prompts);
     setLogs(data.logs);
     setIsLoggedIn(true);
+    setPendingGoogle(null);
+    setAuthError('');
+  };
+
+  // User backed out of the Google passphrase step — clear the pending identity.
+  const handleCancelPendingGoogle = async () => {
+    await logoutVault();
+    setPendingGoogle(null);
+    setAuthError('');
   };
 
   // Central persistence writer — re-encrypts the whole vault and pushes it to Neon.
@@ -195,6 +218,9 @@ export default function VaultApp() {
                     theme={theme}
                     setTheme={handleThemeChange}
                     onAuthSuccess={handleAuthSuccess}
+                    pendingGoogle={pendingGoogle}
+                    initialError={authError}
+                    onCancelPendingGoogle={handleCancelPendingGoogle}
                   />
                 </div>
               </div>

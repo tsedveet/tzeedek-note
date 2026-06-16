@@ -59,12 +59,50 @@ export async function loginVault(params: {
   return jsonOrThrow(res);
 }
 
-export async function fetchSession(): Promise<{
-  user: VaultUser;
-  vault: EncryptedBlob | null;
-} | null> {
+export interface PendingGoogle {
+  email: string;
+  isNewUser: boolean;
+  salt: string | null;
+}
+
+export interface SessionInfo {
+  user?: VaultUser;
+  vault?: EncryptedBlob | null;
+  pendingGoogle?: PendingGoogle;
+}
+
+export async function fetchSession(): Promise<SessionInfo | null> {
   const res = await fetch('/api/auth/me', { method: 'GET' });
   if (res.status === 401) return null;
+  return jsonOrThrow(res);
+}
+
+/** Navigate to Google's consent screen (full-page redirect). */
+export function startGoogleLogin(): void {
+  window.location.href = '/api/auth/google/start';
+}
+
+export async function googleRegister(params: {
+  salt: string;
+  authHash: string;
+  vault: EncryptedBlob;
+}): Promise<{ user: VaultUser }> {
+  const res = await fetch('/api/auth/google/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  return jsonOrThrow(res);
+}
+
+export async function googleLogin(params: {
+  authHash: string;
+}): Promise<{ user: VaultUser; vault: EncryptedBlob | null }> {
+  const res = await fetch('/api/auth/google/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
   return jsonOrThrow(res);
 }
 
