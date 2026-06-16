@@ -112,7 +112,7 @@ export default function SettingsTab({ user, theme, setTheme, onClearAllData, onL
             </h3>
             
             <p className="text-xs text-white/40">
-              VaultNote аюулгүй байдлын үйл ажиллагаанд тохирох өнгө сонгож, ажлын талбарыг өөрчилнө үү.
+              tzeedek-note аюулгүй байдлын үйл ажиллагаанд тохирох өнгө сонгож, ажлын талбарыг өөрчилнө үү.
             </p>
 
             <div className="grid grid-cols-2 gap-3 pt-1.5">

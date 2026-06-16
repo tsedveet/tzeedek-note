@@ -1,5 +1,5 @@
 {
-  "name": "VaultNote",
+  "name": "tzeedek-note",
   "description": "A cinematic, premium local-first secure vault for notes, passwords, and AI prompts.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

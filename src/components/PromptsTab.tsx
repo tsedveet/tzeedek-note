@@ -200,7 +200,7 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
       const formattedPrompt = p.promptText + `\n\n[USER CONTEXT VARIABLE]: ${customVariable}`;
       
       // Simulate highly detailed cyber answer based on prompt properties
-      let resultText = `[VaultNote AI Client Proxy v1.2]\n`;
+      let resultText = `[tzeedek-note AI Client Proxy v1.2]\n`;
       resultText += `[STATUS]: ANALYSIS COMPLETED SECURELY IN SANDBOX\n\n`;
       if (p.category === 'Development') {
         resultText += `Оруулсан Кот: "${customVariable.substring(0, 40)}${customVariable.length > 40 ? '...' : ''}"\n\n`;

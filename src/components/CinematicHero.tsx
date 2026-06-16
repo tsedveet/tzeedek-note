@@ -110,8 +110,8 @@ export default function CinematicHero({ theme }: CinematicHeroProps) {
 
             {/* Custom Logo Texts with letter-spacing from Artistic Flair */}
             <div className="logo-box">
-              <div className="logo-text font-display">VAULT</div>
-              <div className="logo-subtitle font-mono tracking-[0.8em]" style={{ color: colors.stopColor }}>NOTE</div>
+              <div className="logo-text font-display">tzeedek</div>
+              <div className="logo-subtitle font-mono tracking-[0.8em]" style={{ color: colors.stopColor }}>-note</div>
               <div className="mt-2.5 flex justify-center">
                 <Shield className={`w-4 h-4 ${colors.text} opacity-80 animate-pulse`} />
               </div>
@@ -135,7 +135,7 @@ export default function CinematicHero({ theme }: CinematicHeroProps) {
       <div className="relative z-10 flex justify-between items-start">
         <div>
           <h2 className="font-display text-2xl font-semibold tracking-wider text-white">
-            VAULT<span className={colors.text}>NOTE</span>
+            tzeedek<span className={colors.text}>-note</span>
           </h2>
           <p className="text-xs text-white/40 font-mono mt-1 tracking-wider">
             SECURE ZERO-KNOWLEDGE PROTOCOL

@@ -68,7 +68,7 @@ export default function AuthScreen({
         {
           id: 'note-1',
           title: '🔐 Хувийн Сейфийн зааварчилгаа',
-          content: `## VaultNote-д тавтай морилно уу! \n\nЭнэхүү систем нь **хэрэглэгчийн талын шифрлэлттэй (Zero-Knowledge Architecture)** бөгөөд таны хувийн өгөгдөл, тэмдэглэл болон нууц үгүүд зөвхөн таны төхөөрөмж дээр шифрлэгдэн хадгалагддаг.\n\n### Үндсэн боломжууд:\n1. **Тэмдэглэл (Notes)** - Маш хурдан, Markdown дэмжигчтэй, дуртай болон архивлах боломжтой.\n2. **Нууц үг (Passwords)** - Нууцлагдсан харагдац, хуулах хурдан үйлдэл болон аюулгүй байдлын индикатор бүхий менежер.\n3. **AI Промпт (AIPrompt)** - Идэвхтэй ашигладаг промптуудаа нэг дороос хялбар бөгөөд хурдан удирдах.\n\n_Өгөгдөл тань зөвхөн таны хяналтад байна. Тавтай ашиглаарай!_`,
+          content: `## tzeedek-note-д тавтай морилно уу! \n\nЭнэхүү систем нь **хэрэглэгчийн талын шифрлэлттэй (Zero-Knowledge Architecture)** бөгөөд таны хувийн өгөгдөл, тэмдэглэл болон нууц үгүүд зөвхөн таны төхөөрөмж дээр шифрлэгдэн хадгалагддаг.\n\n### Үндсэн боломжууд:\n1. **Тэмдэглэл (Notes)** - Маш хурдан, Markdown дэмжигчтэй, дуртай болон архивлах боломжтой.\n2. **Нууц үг (Passwords)** - Нууцлагдсан харагдац, хуулах хурдан үйлдэл болон аюулгүй байдлын индикатор бүхий менежер.\n3. **AI Промпт (AIPrompt)** - Идэвхтэй ашигладаг промптуудаа нэг дороос хялбар бөгөөд хурдан удирдах.\n\n_Өгөгдөл тань зөвхөн таны хяналтад байна. Тавтай ашиглаарай!_`,
           isPinned: true,
           isFavorite: true,
           isArchived: false,
@@ -426,9 +426,9 @@ export default function AuthScreen({
                 }`} />
               </div>
               <h2 className="font-display text-2xl font-semibold tracking-wider text-white">
-                VAULT<span className={
+                tzeedek<span className={
                   theme === 'emerald' ? 'text-emerald-400' : theme === 'voltage' ? 'text-sky-400' : theme === 'indigo' ? 'text-violet-400' : 'text-slate-400'
-                }>NOTE</span>
+                }>-note</span>
               </h2>
               <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/30 mt-1">
                 Хувийн тэмдэглэл & Нууц үг хадгалах сан

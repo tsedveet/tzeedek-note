@@ -140,7 +140,7 @@ export default function Dashboard({
     const dataCsv = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(dbDump, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataCsv);
-    downloadAnchor.setAttribute('download', `vaultnote_backup_${user.email.replace(/[@.]/g, '_')}.json`);
+    downloadAnchor.setAttribute('download', `tzeedek-note_backup_${user.email.replace(/[@.]/g, '_')}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -181,7 +181,7 @@ export default function Dashboard({
             {!isSidebarCollapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-left">
                 <h2 className="font-display text-md font-semibold tracking-wider text-white">
-                  VAULT<span className={getThemeTextClass()}>NOTE</span>
+                  tzeedek<span className={getThemeTextClass()}>-note</span>
                 </h2>
                 <span className="text-[8px] font-mono tracking-[0.15em] text-white/30 uppercase">SECURITY DESK</span>
               </motion.div>
@@ -258,7 +258,7 @@ export default function Dashboard({
       {/* MOBILE HEADER FOR RESPONSIVE PHONES */}
       <div className="md:hidden fixed top-3 left-3 right-3 h-14 glass-panel border border-white/5 bg-black/80 rounded-xl flex items-center justify-between px-4 z-40">
         <h2 className="font-display text-sm font-semibold tracking-wider text-white">
-          VAULT<span className={getThemeTextClass()}>NOTE</span>
+          tzeedek<span className={getThemeTextClass()}>-note</span>
         </h2>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
