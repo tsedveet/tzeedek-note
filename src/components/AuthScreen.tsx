@@ -228,8 +228,8 @@ export default function AuthScreen({ theme, setTheme, onAuthSuccess }: AuthScree
 
   return (
     <div className="relative flex flex-col justify-center items-center py-6 px-4 md:px-0 w-full min-h-[580px] z-10">
-      {/* Dynamic Theme switcher header directly embedded inside the block */}
-      <div className="absolute top-0 right-4 flex items-center space-x-1.5 p-1 rounded-full glass-panel border border-white/5 bg-black/40 z-20">
+      {/* Dynamic Theme switcher — centered above the card so it never clips the edge */}
+      <div className="flex items-center space-x-1 p-1 mb-5 rounded-full glass-panel border border-white/10 bg-black/40 z-20">
         {(['emerald', 'voltage', 'indigo', 'minimal'] as VaultTheme[]).map((t) => (
           <button
             key={t}
