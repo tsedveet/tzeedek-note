@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Settings, Shield, HardDrive, Download, AlertOctagon, RefreshCw, KeyRound, Clock, User, LogOut } from 'lucide-react';
 import { VaultTheme, VaultUser } from '../types';
+import { useConfirm } from './ConfirmProvider';
 
 interface SettingsTabProps {
   user: VaultUser | null;
@@ -18,13 +19,18 @@ interface SettingsTabProps {
 }
 
 export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, exportDatabase }: SettingsTabProps) {
-  const [selfDestructTriggered, setSelfDestructTriggered] = useState(false);
+  const confirm = useConfirm();
   const [isDestructing, setIsDestructing] = useState(false);
   const [autoLockMin, setAutoLockMin] = useState(15);
 
-  const handleSelfDestruct = () => {
-    const isConfirm = window.confirm('АНХААРУУЛГА! Та өөрийн локал сейфийг БҮРМӨСӨН устгахдаа итгэлтэй байна уу? Таны бүх тэмдэглэл, нууц үг, промптууд устгагдах бөгөөд сэргээх боломжгүй.');
-    if (!isConfirm) return;
+  const handleSelfDestruct = async () => {
+    const ok = await confirm({
+      title: 'Сейфийг бүрмөсөн устгах',
+      message: 'АНХААРУУЛГА! Та өөрийн локал сейфийг БҮРМӨСӨН устгахдаа итгэлтэй байна уу? Таны бүх тэмдэглэл, нууц үг, промптууд устгагдах бөгөөд сэргээх боломжгүй.',
+      confirmText: 'Бүгдийг устгах',
+      danger: true,
+    });
+    if (!ok) return;
 
     setIsDestructing(true);
     setTimeout(() => {

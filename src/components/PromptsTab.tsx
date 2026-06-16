@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Copy, Check, Star, Plus, Trash2, Edit3, X, Play, Terminal, Tag, Search, ArrowRight, MessageSquare } from 'lucide-react';
 import { AIPrompt, VaultTheme } from '../types';
+import { useConfirm } from './ConfirmProvider';
 
 interface PromptsTabProps {
   prompts: AIPrompt[];
@@ -15,6 +16,7 @@ interface PromptsTabProps {
 }
 
 export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsTabProps) {
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -166,10 +168,15 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
     onUpdatePrompts(updated, `AI Промптыг архивлав: ${item?.title}`);
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const isConfirm = window.confirm('Та энэ промптыг устгахдаа итгэлтэй байна уу? Сейфнээс бүрмөсөн устах болно.');
-    if (!isConfirm) return;
+    const ok = await confirm({
+      title: 'Промпт устгах',
+      message: 'Та энэ промптыг устгахдаа итгэлтэй байна уу? Сейфнээс бүрмөсөн устах болно.',
+      confirmText: 'Устгах',
+      danger: true,
+    });
+    if (!ok) return;
 
     const updated = prompts.filter(p => p.id !== id);
     const item = prompts.find(p => p.id === id);

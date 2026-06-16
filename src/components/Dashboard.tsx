@@ -18,6 +18,7 @@ import PromptsTab from './PromptsTab';
 import FavoritesTab from './FavoritesTab';
 import ArchiveTab from './ArchiveTab';
 import SettingsTab from './SettingsTab';
+import { useConfirm } from './ConfirmProvider';
 
 interface DashboardProps {
   user: VaultUser;
@@ -50,6 +51,7 @@ export default function Dashboard({
   onLogOut,
   onClearAllData
 }: DashboardProps) {
+  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<VaultTab>('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -104,9 +106,14 @@ export default function Dashboard({
     }
   };
 
-  const handleDeletePermanent = (id: string, type: 'note' | 'password' | 'prompt') => {
-    const isConfirm = window.confirm('Та үүнийг сэргээх боломжгүйгээр бүрмөсөн устгах уу?');
-    if (!isConfirm) return;
+  const handleDeletePermanent = async (id: string, type: 'note' | 'password' | 'prompt') => {
+    const ok = await confirm({
+      title: 'Бүрмөсөн устгах',
+      message: 'Та үүнийг сэргээх боломжгүйгээр бүрмөсөн устгах уу?',
+      confirmText: 'Устгах',
+      danger: true,
+    });
+    if (!ok) return;
 
     if (type === 'note') {
       const updated = notes.filter(n => n.id !== id);

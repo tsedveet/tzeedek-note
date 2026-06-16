@@ -25,6 +25,7 @@ import VaultBackground from './VaultBackground';
 import CinematicHero from './CinematicHero';
 import AuthScreen from './AuthScreen';
 import Dashboard from './Dashboard';
+import ConfirmProvider from './ConfirmProvider';
 
 export default function VaultApp() {
   const [booting, setBooting] = useState(true);
@@ -155,6 +156,7 @@ export default function VaultApp() {
   };
 
   return (
+    <ConfirmProvider>
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
       {/* Living Cinematic Ambient Background visible on both views */}
       <VaultBackground theme={theme} />
@@ -220,5 +222,6 @@ export default function VaultApp() {
         </AnimatePresence>
       )}
     </div>
+    </ConfirmProvider>
   );
 }

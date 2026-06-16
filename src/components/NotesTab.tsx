@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Plus, Pin, Star, Archive, Trash2, Edit3, Eye, FileText, ChevronRight, X, Sparkles } from 'lucide-react';
 import { Note, VaultTheme } from '../types';
+import { useConfirm } from './ConfirmProvider';
 
 interface NotesTabProps {
   notes: Note[];
@@ -15,6 +16,7 @@ interface NotesTabProps {
 }
 
 export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps) {
+  const confirm = useConfirm();
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(notes[0]?.id || null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,22 +61,23 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
     const timeNow = new Date().toISOString();
     const newNote: Note = {
       id: `note-${Date.now()}`,
-      title: 'Нов тэмдэглэл',
-      content: 'Тэмдэглэлийн агуулга энд бичигдэнэ...',
+      title: '',
+      content: '',
       isPinned: false,
       isFavorite: false,
       isArchived: false,
       createdAt: timeNow,
       updatedAt: timeNow,
-      tags: ['шинэ']
+      tags: []
     };
 
     const updated = [newNote, ...notes];
-    onUpdateNotes(updated, `Шинэ тэмдэглэл үүсгэв: ${newNote.title}`);
+    onUpdateNotes(updated, 'Шинэ тэмдэглэл үүсгэв');
     setSelectedNoteId(newNote.id);
-    setEditTitle(newNote.title);
-    setEditContent(newNote.content);
-    setEditTags('шинэ');
+    // Leave the fields empty so the placeholders show — no text to delete first.
+    setEditTitle('');
+    setEditContent('');
+    setEditTags('');
     setIsEditing(true);
   };
 
@@ -127,10 +130,15 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
     }
   };
 
-  const handleDeleteNote = (id: string, e: React.MouseEvent) => {
+  const handleDeleteNote = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const isConfirm = window.confirm('Та энэ тэмдэглэлийг устгахдаа итгэлтэй байна уу? Сейфээс бүрмөсөн устах болно.');
-    if (!isConfirm) return;
+    const ok = await confirm({
+      title: 'Тэмдэглэл устгах',
+      message: 'Та энэ тэмдэглэлийг устгахдаа итгэлтэй байна уу? Сейфээс бүрмөсөн устах болно.',
+      confirmText: 'Устгах',
+      danger: true,
+    });
+    if (!ok) return;
 
     const updated = notes.filter(n => n.id !== id);
     const n = notes.find(item => item.id === id);

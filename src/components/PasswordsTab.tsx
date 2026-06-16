@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { KeyRound, Eye, EyeOff, Copy, Check, Shield, AlertTriangle, Plus, Trash2, Edit3, Save, ExternalLink, Star, Archive, Search, RefreshCw, Sparkles, X } from 'lucide-react';
 import { PasswordEntry, VaultTheme } from '../types';
+import { useConfirm } from './ConfirmProvider';
 
 interface PasswordsTabProps {
   passwords: PasswordEntry[];
@@ -15,6 +16,7 @@ interface PasswordsTabProps {
 }
 
 export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: PasswordsTabProps) {
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPassId, setSelectedPassId] = useState<string | null>(null);
   const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
@@ -206,10 +208,15 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
     onUpdatePasswords(updated, `Нууц үгийг архивлав: ${item?.title}`);
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const isConfirm = window.confirm('Та энэ нууц үгийн картыг устгахдаа итгэлтэй байна уу? Сейфнээс бүрмөсөн устах болно.');
-    if (!isConfirm) return;
+    const ok = await confirm({
+      title: 'Нууц үг устгах',
+      message: 'Та энэ нууц үгийн картыг устгахдаа итгэлтэй байна уу? Сейфнээс бүрмөсөн устах болно.',
+      confirmText: 'Устгах',
+      danger: true,
+    });
+    if (!ok) return;
 
     const updated = passwords.filter(p => p.id !== id);
     const item = passwords.find(p => p.id === id);
