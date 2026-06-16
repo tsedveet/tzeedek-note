@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, Pin, Star, Archive, Trash2, Edit3, Eye, FileText, ChevronRight, X, Sparkles } from 'lucide-react';
+import { Search, Plus, Pin, Star, Archive, Trash2, Edit3, Eye, FileText, ChevronLeft } from 'lucide-react';
 import { Note, VaultTheme } from '../types';
 import { useConfirm } from './ConfirmProvider';
 import ReactMarkdown from 'react-markdown';
@@ -19,7 +19,7 @@ interface NotesTabProps {
 
 export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps) {
   const confirm = useConfirm();
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(notes[0]?.id || null);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -171,10 +171,10 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-160px)] min-h-[580px]">
-      
-      {/* LEFT COLUMN: Dual search and list partition */}
-      <div className="lg:col-span-4 flex flex-col space-y-4 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 h-full lg:h-[calc(100vh-160px)] lg:min-h-[580px]">
+
+      {/* LEFT COLUMN: search + list (hidden on mobile when a note is open) */}
+      <div className={`${activeNote ? 'hidden lg:flex' : 'flex'} lg:col-span-4 flex-col space-y-4 h-full min-h-0`}>
         {/* Actions panel */}
         <div className="flex items-center justify-between gap-3">
           <div className="relative grow">
@@ -278,8 +278,8 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Active editor or detail view */}
-      <div className="lg:col-span-8 glass-panel rounded-3xl bg-black/40 border border-white/5 flex flex-col h-full overflow-hidden relative">
+      {/* RIGHT COLUMN: editor/detail (full-screen on mobile when a note is open) */}
+      <div className={`${activeNote ? 'flex' : 'hidden lg:flex'} lg:col-span-8 glass-panel rounded-3xl bg-black/40 border border-white/5 flex-col h-full min-h-0 overflow-hidden relative`}>
         <AnimatePresence mode="wait">
           {activeNote ? (
             <motion.div
@@ -292,6 +292,13 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
               {/* Note Header Toolbar */}
               <div className="flex items-center justify-between p-4 border-b border-white/5 bg-black/30">
                 <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setSelectedNoteId(null)}
+                    className="lg:hidden p-2 rounded-xl hover:bg-white/5 text-white/60 hover:text-white transition"
+                    title="Жагсаалт руу буцах"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={(e) => handleTogglePin(activeNote.id, e)}
                     className={`p-2 rounded-xl transition ${activeNote.isPinned ? 'bg-amber-500/10 text-amber-400' : 'hover:bg-white/5 text-white/40 hover:text-white'}`}

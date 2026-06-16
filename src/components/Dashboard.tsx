@@ -6,8 +6,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Home, FileText, KeyRound, Sparkles, Star, Archive, Settings, 
-  Menu, X, ShieldAlert, ShieldCheck, LogOut, ChevronLeft, ChevronRight, User
+  Home, FileText, KeyRound, Sparkles, Star, Archive, Settings,
+  ShieldCheck, LogOut, ChevronLeft, ChevronRight, User
 } from 'lucide-react';
 
 import { Note, PasswordEntry, AIPrompt, VaultLog, VaultTab, VaultTheme, VaultUser } from '@/types';
@@ -54,7 +54,6 @@ export default function Dashboard({
   const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<VaultTab>('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Helper custom state writers
   const handleUpdateNotes = (updated: Note[], logMsg: string) => {
@@ -255,55 +254,38 @@ export default function Dashboard({
         </div>
       </motion.aside>
 
-      {/* MOBILE HEADER FOR RESPONSIVE PHONES */}
-      <div className="md:hidden fixed top-3 left-3 right-3 h-14 glass-panel border border-white/5 bg-black/80 rounded-xl flex items-center justify-between px-4 z-40">
+      {/* MOBILE TOP BAR: brand + quick views + lock (navigation lives at the bottom) */}
+      <div className="md:hidden fixed top-3 left-3 right-3 h-14 glass-panel border border-white/5 bg-black/80 rounded-xl flex items-center justify-between pl-4 pr-2 z-40">
         <h2 className="font-display text-sm font-semibold tracking-wider text-white">
           tzeedek<span className={getThemeTextClass()}>-note</span>
         </h2>
-        <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-1.5 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition"
-        >
-          {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center space-x-0.5">
+          <button
+            onClick={() => setActiveTab('favorites')}
+            className={`p-2 rounded-lg transition ${activeTab === 'favorites' ? `bg-white/10 ${getThemeTextClass()}` : 'text-white/50 hover:text-white'}`}
+            title="Дуртай"
+          >
+            <Star className="w-4.5 h-4.5" />
+          </button>
+          <button
+            onClick={() => setActiveTab('archive')}
+            className={`p-2 rounded-lg transition ${activeTab === 'archive' ? `bg-white/10 ${getThemeTextClass()}` : 'text-white/50 hover:text-white'}`}
+            title="Архив"
+          >
+            <Archive className="w-4.5 h-4.5" />
+          </button>
+          <button
+            onClick={onLogOut}
+            className="p-2 rounded-lg text-rose-400 hover:bg-rose-500/10 transition"
+            title="Сейфийг түгжих"
+          >
+            <LogOut className="w-4.5 h-4.5" />
+          </button>
+        </div>
       </div>
 
-      {/* MOBILE DRAWER NAVIGATION */}
-      <AnimatePresence>
-        {isMobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="md:hidden fixed inset-x-3 top-18 bg-black/95 glass-panel border border-white/10 p-5 rounded-2xl z-30 space-y-4 text-left"
-          >
-            <nav className="space-y-1">
-              {sidebarItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id as VaultTab);
-                    setIsMobileOpen(false);
-                  }}
-                  className={`w-full flex items-center py-2.5 px-3 rounded-xl text-xs space-x-3 transition ${
-                    activeTab === item.id ? 'bg-white/10 text-white font-semibold' : 'text-white/50 hover:text-white'
-                  }`}
-                >
-                  {React.createElement(item.icon, { className: 'w-4 h-4 shrink-0' })}
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </nav>
-            <div className="border-t border-white/5 pt-3 flex justify-between items-center text-xs">
-              <span className="font-mono text-white/40">{user.email}</span>
-              <button onClick={onLogOut} className="text-rose-400 font-medium">Түгжих</button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* STAGE AREA: Rendering Active Tabs with Transition Animations */}
-      <main className="grow flex flex-col h-full overflow-hidden relative md:pl-4 pt-16 md:pt-0">
+      <main className="grow flex flex-col h-full overflow-hidden relative md:pl-4 pt-16 pb-20 md:pt-0 md:pb-0">
         
         {/* Top Header line detailing cryptographic connection status */}
         <div className="hidden md:flex justify-between items-center py-2 mb-4 border-b border-white/[0.04] px-1 z-10 shrink-0">
@@ -399,6 +381,28 @@ export default function Dashboard({
         </div>
 
       </main>
+
+      {/* MOBILE BOTTOM NAVIGATION (app-style tab bar) */}
+      <nav className="md:hidden fixed bottom-3 left-3 right-3 h-16 glass-panel border border-white/10 bg-black/85 rounded-2xl flex items-center justify-around px-1 z-40">
+        {sidebarItems
+          .filter((i) => ['overview', 'notes', 'passwords', 'prompts', 'settings'].includes(i.id))
+          .map((item) => {
+            const isActive = activeTab === item.id;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as VaultTab)}
+                className="flex flex-col items-center justify-center gap-1 w-[19%] py-1.5 rounded-xl transition active:scale-95"
+              >
+                <Icon className={`w-5 h-5 transition ${isActive ? getThemeTextClass() : 'text-white/40'}`} />
+                <span className={`text-[9px] font-mono tracking-tight whitespace-nowrap ${isActive ? 'text-white/85' : 'text-white/35'}`}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+      </nav>
 
     </div>
   );
