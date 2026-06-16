@@ -142,6 +142,19 @@ body {
   overflow-x: hidden;
 }
 
+/* Tame Chrome/Safari autofill so it matches the dark theme instead of
+   turning inputs white (which also hid the email/password icons). */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px #141416 inset;
+  box-shadow: 0 0 0 1000px #141416 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Custom glowing pulse keyframes */
 @keyframes pulseGlow {
   0%, 100% {
