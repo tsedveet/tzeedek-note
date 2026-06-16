@@ -27,6 +27,9 @@ import AuthScreen from './AuthScreen';
 import Dashboard from './Dashboard';
 import ConfirmProvider from './ConfirmProvider';
 
+// Cap the audit trail so the encrypted vault blob never grows without bound.
+const MAX_LOGS = 50;
+
 export default function VaultApp() {
   const [booting, setBooting] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -92,17 +95,19 @@ export default function VaultApp() {
     updatedPrompts: AIPrompt[],
     updatedLogs: VaultLog[],
   ) => {
+    // Keep only the most recent entries so the vault stays small.
+    const trimmedLogs = updatedLogs.slice(0, MAX_LOGS);
     setNotes(updatedNotes);
     setPasswords(updatedPasswords);
     setPrompts(updatedPrompts);
-    setLogs(updatedLogs);
+    setLogs(trimmedLogs);
 
     if (!encKey) return;
     const data: VaultData = {
       notes: updatedNotes,
       passwords: updatedPasswords,
       prompts: updatedPrompts,
-      logs: updatedLogs,
+      logs: trimmedLogs,
     };
     encryptVault(encKey, data)
       .then((blob) => saveVault(blob))
@@ -123,7 +128,7 @@ export default function VaultApp() {
           notes,
           passwords,
           prompts,
-          logs: [lockLog, ...logs],
+          logs: [lockLog, ...logs].slice(0, MAX_LOGS),
         });
         await saveVault(blob);
       } catch (err) {
