@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, Plus, Pin, Star, Archive, Trash2, Edit3, Eye, FileText, ChevronRight, X, Sparkles } from 'lucide-react';
 import { Note, VaultTheme } from '../types';
 import { useConfirm } from './ConfirmProvider';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface NotesTabProps {
   notes: Note[];
@@ -166,52 +168,6 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
       case 'minimal':
       default: return 'focus:border-slate-500/35';
     }
-  };
-
-  // Safe manual simplified mockup markdown renderer to present the user luxurious typography
-  const renderSimpleMarkdown = (text: string) => {
-    if (!text) return <p className="text-white/30 italic">Агуулга хоосон байна.</p>;
-    
-    const lines = text.split('\n');
-    return (
-      <div className="space-y-4 text-white/80 leading-relaxed font-sans text-sm">
-        {lines.map((line, idx) => {
-          // Headers
-          if (line.startsWith('## ')) {
-            return <h3 key={idx} className="text-lg font-semibold tracking-tight text-white mt-6 mb-2 border-b border-white/5 pb-1">{line.slice(3)}</h3>;
-          }
-          if (line.startsWith('### ')) {
-            return <h4 key={idx} className="text-md font-medium tracking-tight text-white mt-4 mb-1">{line.slice(4)}</h4>;
-          }
-          if (line.startsWith('# ')) {
-            return <h2 key={idx} className="text-2xl font-semibold tracking-tight text-white mt-8 mb-4">{line.slice(2)}</h2>;
-          }
-          // Bullets
-          if (line.startsWith('- ') || line.startsWith('* ')) {
-            return <li key={idx} className="list-disc pl-2 ml-4 text-white/75">{line.slice(2)}</li>;
-          }
-          // Blockquotes
-          if (line.startsWith('> ') || line.startsWith('_')) {
-            return <blockquote key={idx} className="border-l-2 border-white/20 pl-4 py-1 italic my-3 bg-white/[0.01] text-white/50">{line.replace(/^>\s*/, '').replace(/_/g, '')}</blockquote>;
-          }
-          // Todo list item
-          if (line.startsWith('- [ ] ') || line.startsWith('- [x] ')) {
-            const checked = line.includes('[x]');
-            return (
-              <div key={idx} className="flex items-center space-x-2 my-1">
-                <input type="checkbox" checked={checked} readOnly className="rounded border-white/10 bg-black/40 text-emerald-500 w-3.5 h-3.5 focus:ring-0" />
-                <span className={checked ? 'line-through text-white/40' : 'text-white/80'}>{line.slice(6)}</span>
-              </div>
-            );
-          }
-          // Empty spacing
-          if (line.trim() === '') {
-            return <div key={idx} className="h-2" />;
-          }
-          return <p key={idx} className="my-1.5">{line}</p>;
-        })}
-      </div>
-    );
   };
 
   return (
@@ -456,9 +412,27 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
 
                     <div className="h-[1px] w-full bg-white/5" />
 
-                    {/* Styled rendering output */}
+                    {/* Styled markdown rendering output */}
                     <div className="mt-4">
-                      {renderSimpleMarkdown(activeNote.content)}
+                      {activeNote.content ? (
+                        <div
+                          className="prose prose-invert prose-sm max-w-none break-words
+                            prose-headings:font-display prose-headings:text-white prose-headings:tracking-tight
+                            prose-p:text-white/80 prose-strong:text-white prose-em:text-white/80
+                            prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
+                            prose-li:text-white/80 prose-li:marker:text-white/30
+                            prose-code:text-emerald-300 prose-code:bg-white/[0.06] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-[''] prose-code:after:content-['']
+                            prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl
+                            prose-blockquote:border-l-white/20 prose-blockquote:text-white/55 prose-blockquote:not-italic
+                            prose-hr:border-white/10"
+                        >
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {activeNote.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-white/30 italic text-sm">Агуулга хоосон байна.</p>
+                      )}
                     </div>
                   </div>
                 )}
