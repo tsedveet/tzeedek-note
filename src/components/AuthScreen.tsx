@@ -74,74 +74,11 @@ export default function AuthScreen({
           isArchived: false,
           createdAt: timeNow,
           updatedAt: timeNow,
-          tags: ['заавар', 'нууцлал']
-        },
-        {
-          id: 'note-2',
-          title: '💡 Холын төлөвлөгөө - 2026',
-          content: `## Ирэх жилийн гол зорилтууд\n\n- [ ] Хувийн дижитал аюулгүй байдлыг сайжруулах\n- [ ] Obsidian болон VaultNote-оо цэгцэлж, өдөр тутам хөтлөх\n- [ ] Cyberpunk шинэ дуунууд болон тохиргоонуудыг хадгалах\n- [ ] Gemini API промптуудыг бүрэн ашиглаж, автоматжуулалт хийх.`,
-          isPinned: false,
-          isFavorite: false,
-          isArchived: false,
-          createdAt: timeNow,
-          updatedAt: timeNow,
-          tags: ['зорилго', 'тэмдэглэл']
+          tags: ['заавар']
         }
       ],
-      passwords: [
-        {
-          id: 'pass-1',
-          title: '🔥 Github Primary Account',
-          username: 'cyber_coder_2026',
-          passwordText: 'ghp_K48shvD8Shf29HnsKh8fAhsd',
-          strength: 'strong',
-          websiteUrl: 'github.com',
-          isFavorite: true,
-          isArchived: false,
-          createdAt: timeNow,
-          updatedAt: timeNow,
-          notes: 'Дурын системд ашиглаж болохгүй девелопер токен.'
-        },
-        {
-          id: 'pass-2',
-          title: '💳 Хаан Банк - Цахим Төлбөр',
-          username: 'tsedveetb@gmail.com',
-          passwordText: 'M0ngol_E%cypted_99',
-          strength: 'strong',
-          websiteUrl: 'khanbank.com',
-          isFavorite: false,
-          isArchived: false,
-          createdAt: timeNow,
-          updatedAt: timeNow,
-          notes: 'Гүйлгээний пин код: ****'
-        }
-      ],
-      prompts: [
-        {
-          id: 'prompt-1',
-          title: '📝 Code Optimizer Expert',
-          promptText: 'You are an advanced TypeScript static analyst. Review this code block for performance leaks, edge cases, and typical security holes. Suggest visual optimizations. Use clean layout syntax.',
-          description: 'Кодыг хянах, засварлах зориулалттай тусгай AI Промпт',
-          category: 'Development',
-          tags: ['coding', 'typescript', 'ai'],
-          isFavorite: true,
-          isArchived: false,
-          createdAt: timeNow,
-          updatedAt: timeNow
-        },
-        {
-          id: 'prompt-2',
-          title: '🎨 Cinematic UI Designer Guide',
-          promptText: 'Generate precise Tailwind CSS markup emphasizing a premium dark theme, space grostesk typography, subtle glassmorphism layers, emerald glow shadows, and minimal clean borders.',
-          description: 'Дээд зэрэглэлийн дизайн, интерфейс гаргах AI промпт',
-          category: 'Design',
-          tags: ['css', 'tailwind', 'ui'],
-          isFavorite: false,
-          isArchived: false,
-          createdAt: timeNow,
-          updatedAt: timeNow
-        }
-      ],
+      passwords: [],
+      prompts: [],
       logs: [
         {
           id: 'log-1',
