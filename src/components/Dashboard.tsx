@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Home, FileText, KeyRound, Sparkles, Star, Archive, Settings,
-  ShieldCheck, LogOut, ChevronLeft, ChevronRight, User
+  ShieldCheck, LogOut, ChevronLeft, ChevronRight, User, Search
 } from 'lucide-react';
 
 import { Note, PasswordEntry, AIPrompt, VaultLog, VaultTab, VaultTheme, VaultUser } from '@/types';
@@ -18,6 +18,7 @@ import PromptsTab from './PromptsTab';
 import FavoritesTab from './FavoritesTab';
 import ArchiveTab from './ArchiveTab';
 import SettingsTab from './SettingsTab';
+import CommandPalette from './CommandPalette';
 import { useConfirm } from './ConfirmProvider';
 
 interface DashboardProps {
@@ -37,6 +38,8 @@ interface DashboardProps {
   ) => void;
   onLogOut: () => void;
   onClearAllData: () => void;
+  autoLockMin: number;
+  setAutoLockMin: (m: number) => void;
 }
 
 export default function Dashboard({
@@ -49,11 +52,28 @@ export default function Dashboard({
   setTheme,
   onUpdateAppStore,
   onLogOut,
-  onClearAllData
+  onClearAllData,
+  autoLockMin,
+  setAutoLockMin
 }: DashboardProps) {
   const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<VaultTab>('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Ctrl/⌘+K opens the global search palette; Esc closes it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      } else if (e.key === 'Escape') {
+        setPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Helper custom state writers
   const handleUpdateNotes = (updated: Note[], logMsg: string) => {
@@ -261,6 +281,13 @@ export default function Dashboard({
         </h2>
         <div className="flex items-center space-x-0.5">
           <button
+            onClick={() => setPaletteOpen(true)}
+            className="p-2 rounded-lg text-white/50 hover:text-white transition"
+            title="Хайх"
+          >
+            <Search className="w-4.5 h-4.5" />
+          </button>
+          <button
             onClick={() => setActiveTab('favorites')}
             className={`p-2 rounded-lg transition ${activeTab === 'favorites' ? `bg-white/10 ${getThemeTextClass()}` : 'text-white/50 hover:text-white'}`}
             title="Дуртай"
@@ -295,9 +322,19 @@ export default function Dashboard({
             <span className="text-white/70 font-semibold">[ ЛОКАЛ САНДБОКС ]</span>
           </div>
 
-          <div className="flex items-center space-x-1 bg-emerald-500/[0.04] px-3 py-1 rounded-full border border-emerald-500/10 text-[10px] font-mono tracking-wider text-emerald-400">
-            <ShieldCheck className="w-3.5 h-3.5 object-contain" />
-            <span>AES-256 CODER KEY DERIVATION SECURED</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white/50 hover:text-white/80 text-[11px] font-mono transition cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Хайх</span>
+              <kbd className="text-[9px] border border-white/10 rounded px-1">⌘K</kbd>
+            </button>
+            <div className="flex items-center space-x-1 bg-emerald-500/[0.04] px-3 py-1 rounded-full border border-emerald-500/10 text-[10px] font-mono tracking-wider text-emerald-400">
+              <ShieldCheck className="w-3.5 h-3.5 object-contain" />
+              <span>AES-256 CODER KEY DERIVATION SECURED</span>
+            </div>
           </div>
         </div>
 
@@ -374,6 +411,8 @@ export default function Dashboard({
                   onClearAllData={onClearAllData}
                   onLogOut={onLogOut}
                   exportDatabase={exportDatabase}
+                  autoLockMin={autoLockMin}
+                  setAutoLockMin={setAutoLockMin}
                 />
               )}
             </motion.div>
@@ -403,6 +442,16 @@ export default function Dashboard({
             );
           })}
       </nav>
+
+      {/* Global search (Ctrl/⌘+K) */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        notes={notes}
+        passwords={passwords}
+        prompts={prompts}
+        onNavigate={(tab) => setActiveTab(tab)}
+      />
 
     </div>
   );

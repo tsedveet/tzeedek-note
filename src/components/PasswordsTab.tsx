@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { KeyRound, Eye, EyeOff, Copy, Check, Shield, AlertTriangle, Plus, Trash2, Edit3, Save, ExternalLink, Star, Archive, Search, RefreshCw, Sparkles, X } from 'lucide-react';
 import { PasswordEntry, VaultTheme } from '../types';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './ToastProvider';
 
 interface PasswordsTabProps {
   passwords: PasswordEntry[];
@@ -17,6 +18,7 @@ interface PasswordsTabProps {
 
 export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: PasswordsTabProps) {
   const confirm = useConfirm();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPassId, setSelectedPassId] = useState<string | null>(null);
   const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
@@ -77,11 +79,18 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
     }
   };
 
-  // Safe trigger for clipboard copy
-  const handleCopyText = (text: string, id: string) => {
+  // Safe trigger for clipboard copy. Sensitive values (passwords) are wiped
+  // from the clipboard after 20s so they don't linger.
+  const handleCopyText = (text: string, id: string, sensitive = false) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
+    if (sensitive) {
+      toast('Нууц үг хуулагдлаа · 20 секундэд clipboard цэвэрлэгдэнэ', 'success');
+      window.setTimeout(() => {
+        navigator.clipboard.writeText('').catch(() => {});
+      }, 20000);
+    }
   };
 
   const toggleReveal = (id: string, e: React.MouseEvent) => {
@@ -148,7 +157,7 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
   const handleSavePassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !username || !passwordText) {
-      alert('Шаардлагатай талбаруудыг бүрэн бөглөнө үү.');
+      toast('Шаардлагатай талбаруудыг бүрэн бөглөнө үү.', 'error');
       return;
     }
 
@@ -350,7 +359,7 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
                         {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       </button>
                       <button
-                        onClick={() => handleCopyText(p.passwordText, p.id)}
+                        onClick={() => handleCopyText(p.passwordText, p.id, true)}
                         className="p-1.5 text-white/40 hover:text-white transition"
                         title="Нууц үг хуулах"
                       >

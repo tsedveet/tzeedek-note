@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Copy, Check, Star, Plus, Trash2, Edit3, X, Play, Terminal, Tag, Search, ArrowRight, MessageSquare } from 'lucide-react';
 import { AIPrompt, VaultTheme } from '../types';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './ToastProvider';
 
 interface PromptsTabProps {
   prompts: AIPrompt[];
@@ -17,6 +18,7 @@ interface PromptsTabProps {
 
 export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsTabProps) {
   const confirm = useConfirm();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -111,7 +113,7 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
   const handleSavePrompt = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !promptText || !description) {
-      alert('Шаардлагатай талбаруудыг бөглөнө үү.');
+      toast('Шаардлагатай талбаруудыг бөглөнө үү.', 'error');
       return;
     }
 
@@ -190,7 +192,7 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
   // Run the Prompt Simulator Console (Mock client optimization parser)
   const handleSimulatePrompt = (p: AIPrompt) => {
     if (!customVariable) {
-      alert('Интеграцийн хувьсах хувилбарын утгыг оруулна уу.');
+      toast('Хувьсах утгыг оруулна уу.', 'error');
       return;
     }
 

@@ -16,12 +16,13 @@ interface SettingsTabProps {
   onClearAllData: () => void;
   onLogOut: () => void;
   exportDatabase: () => void;
+  autoLockMin: number;
+  setAutoLockMin: (m: number) => void;
 }
 
-export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, exportDatabase }: SettingsTabProps) {
+export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, exportDatabase, autoLockMin, setAutoLockMin }: SettingsTabProps) {
   const confirm = useConfirm();
   const [isDestructing, setIsDestructing] = useState(false);
-  const [autoLockMin, setAutoLockMin] = useState(15);
 
   const handleSelfDestruct = async () => {
     const ok = await confirm({
@@ -127,6 +128,38 @@ export default function SettingsTab({ user, theme, setTheme, onClearAllData, onL
                   }`}
                 >
                   {t === 'emerald' ? '🟢 Emerald' : t === 'voltage' ? '🔵 Voltage' : t === 'indigo' ? '🟣 Indigo' : '⚪ Minimal'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Auto-lock */}
+          <div className="glass-panel p-5 rounded-2xl bg-black/40 border border-white/5 space-y-4">
+            <h3 className="text-xs font-mono tracking-widest text-white/50 uppercase flex items-center gap-1.5 font-semibold">
+              <Clock className="w-4 h-4 text-white/40" /> Автомат түгжээ
+            </h3>
+            <p className="text-xs text-white/40">
+              Идэвхгүй байх хугацаа дууссаны дараа сейф автоматаар түгжигдэж, дахин нэвтрэх шаардлагатай болно.
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { v: 1, l: '1 мин' },
+                { v: 5, l: '5 мин' },
+                { v: 15, l: '15 мин' },
+                { v: 30, l: '30 мин' },
+                { v: 60, l: '1 цаг' },
+                { v: 0, l: 'Хэзээ ч' },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  onClick={() => setAutoLockMin(opt.v)}
+                  className={`px-2 py-2 rounded-xl text-xs font-mono border transition cursor-pointer ${
+                    autoLockMin === opt.v
+                      ? 'bg-white/10 text-white border-white/10'
+                      : 'bg-black/30 border-white/5 text-white/40 hover:text-white/70 hover:border-white/10'
+                  }`}
+                >
+                  {opt.l}
                 </button>
               ))}
             </div>

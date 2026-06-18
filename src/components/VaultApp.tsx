@@ -27,6 +27,7 @@ import CinematicHero from './CinematicHero';
 import AuthScreen from './AuthScreen';
 import Dashboard from './Dashboard';
 import ConfirmProvider from './ConfirmProvider';
+import ToastProvider from './ToastProvider';
 
 // Cap the audit trail so the encrypted vault blob never grows without bound.
 const MAX_LOGS = 50;
@@ -39,6 +40,7 @@ export default function VaultApp() {
   const [encKey, setEncKey] = useState<CryptoKey | null>(null);
   const [pendingGoogle, setPendingGoogle] = useState<PendingGoogle | null>(null);
   const [authError, setAuthError] = useState('');
+  const [autoLockMin, setAutoLockMin] = useState(15); // 0 = never
 
   // Core App Store States (loaded on auth, decrypted client-side)
   const [notes, setNotes] = useState<Note[]>([]);
@@ -50,6 +52,8 @@ export default function VaultApp() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('vault_active_theme') as VaultTheme | null;
     if (savedTheme) setTheme(savedTheme);
+    const savedLock = localStorage.getItem('vault_autolock_min');
+    if (savedLock !== null) setAutoLockMin(Number(savedLock));
 
     // Surface OAuth redirect results (?google=1 / ?auth_error=...) then clean URL.
     const params = new URLSearchParams(window.location.search);
@@ -87,9 +91,43 @@ export default function VaultApp() {
     })();
   }, []);
 
+  // Auto-lock the vault after a period of inactivity. The latest data is already
+  // saved on every edit, so locking just clears the session + in-memory keys.
+  useEffect(() => {
+    if (!isLoggedIn || autoLockMin <= 0) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const lock = async () => {
+      await logoutVault();
+      clearCachedEncKey();
+      setIsLoggedIn(false);
+      setUser(null);
+      setEncKey(null);
+      setNotes([]);
+      setPasswords([]);
+      setPrompts([]);
+      setLogs([]);
+    };
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(lock, autoLockMin * 60 * 1000);
+    };
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [isLoggedIn, autoLockMin]);
+
   const handleThemeChange = (newTheme: VaultTheme) => {
     setTheme(newTheme);
     localStorage.setItem('vault_active_theme', newTheme);
+  };
+
+  const handleAutoLockChange = (min: number) => {
+    setAutoLockMin(min);
+    localStorage.setItem('vault_autolock_min', String(min));
   };
 
   const handleAuthSuccess = (activeUser: VaultUser, data: VaultData, key: CryptoKey) => {
@@ -184,6 +222,7 @@ export default function VaultApp() {
   };
 
   return (
+    <ToastProvider>
     <ConfirmProvider>
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
       {/* Living Cinematic Ambient Background visible on both views */}
@@ -246,6 +285,8 @@ export default function VaultApp() {
                   onUpdateAppStore={handleUpdateAppStore}
                   onLogOut={handleLogOut}
                   onClearAllData={handleClearAllData}
+                  autoLockMin={autoLockMin}
+                  setAutoLockMin={handleAutoLockChange}
                 />
               )}
             </motion.div>
@@ -254,5 +295,6 @@ export default function VaultApp() {
       )}
     </div>
     </ConfirmProvider>
+    </ToastProvider>
   );
 }

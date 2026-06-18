@@ -11,6 +11,18 @@ import { useConfirm } from './ConfirmProvider';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+// Shared markdown styling used by both the read view and the live preview.
+const MARKDOWN_PROSE =
+  'prose prose-invert prose-sm max-w-none break-words ' +
+  'prose-headings:font-display prose-headings:text-white prose-headings:tracking-tight ' +
+  'prose-p:text-white/80 prose-strong:text-white prose-em:text-white/80 ' +
+  'prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline ' +
+  'prose-li:text-white/80 prose-li:marker:text-white/30 ' +
+  "prose-code:text-emerald-300 prose-code:bg-white/[0.06] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-[''] prose-code:after:content-[''] " +
+  'prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl ' +
+  'prose-blockquote:border-l-white/20 prose-blockquote:text-white/55 prose-blockquote:not-italic ' +
+  'prose-hr:border-white/10';
+
 interface NotesTabProps {
   notes: Note[];
   onUpdateNotes: (updated: Note[], logMsg: string) => void;
@@ -365,17 +377,25 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
               {/* Note Content Area */}
               <div className="grow p-6 md:p-8 overflow-y-auto">
                 {isEditing ? (
-                  <div className="space-y-5 h-full flex flex-col">
+                  <div
+                    className="space-y-4 h-full flex flex-col"
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                        e.preventDefault();
+                        handleSaveNote();
+                      }
+                    }}
+                  >
                     <input
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       placeholder="Гарчиг оруулах..."
-                      className="w-full bg-transparent border-none text-2xl font-semibold tracking-tight text-white focus:outline-none focus:ring-0 placeholder-white/20 font-sans"
+                      className="w-full bg-transparent border-none text-2xl font-semibold tracking-tight text-white focus:outline-none focus:ring-0 placeholder-white/20 font-sans shrink-0"
                     />
 
                     {/* Tag editing */}
-                    <div className="flex items-center space-x-2 bg-black/20 px-3.5 py-2 rounded-xl border border-white/5">
+                    <div className="flex items-center space-x-2 bg-black/20 px-3.5 py-2 rounded-xl border border-white/5 shrink-0">
                       <span className="text-[10px] font-mono text-white/30 shrink-0 uppercase tracking-widest">Tags (Таслалаар):</span>
                       <input
                         type="text"
@@ -386,12 +406,32 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
                       />
                     </div>
 
-                    <textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      placeholder="Тэмдэглэлээ энд шифрлэн хадгална уу..."
-                      className="w-full grow bg-transparent border-none text-sm text-white focus:outline-none focus:ring-0 placeholder-white/15 font-sans leading-relaxed resize-none mt-2 min-h-[250px]"
-                    />
+                    {/* Split: editor + live markdown preview */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 grow min-h-0">
+                      <div className="flex flex-col min-h-0">
+                        <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1.5 shrink-0">Markdown</span>
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          placeholder="Тэмдэглэлээ энд бичнэ үү… (Markdown дэмжинэ)"
+                          className="w-full grow bg-black/20 border border-white/5 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-white/10 placeholder-white/15 font-mono leading-relaxed resize-none min-h-[200px]"
+                        />
+                      </div>
+                      <div className="flex flex-col min-h-0">
+                        <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1.5 shrink-0">Урьдчилан харах</span>
+                        <div className="grow overflow-y-auto bg-black/20 border border-white/5 rounded-xl p-4 min-h-[200px]">
+                          {editContent ? (
+                            <div className={MARKDOWN_PROSE}>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{editContent}</ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p className="text-white/25 italic text-sm">Урьдчилан харах энд гарч ирнэ…</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] font-mono text-white/25 shrink-0">Ctrl / ⌘ + S дарж хадгална</p>
                   </div>
                 ) : (
                   <div className="space-y-6 select-text text-left">
@@ -422,17 +462,7 @@ export default function NotesTab({ notes, onUpdateNotes, theme }: NotesTabProps)
                     {/* Styled markdown rendering output */}
                     <div className="mt-4">
                       {activeNote.content ? (
-                        <div
-                          className="prose prose-invert prose-sm max-w-none break-words
-                            prose-headings:font-display prose-headings:text-white prose-headings:tracking-tight
-                            prose-p:text-white/80 prose-strong:text-white prose-em:text-white/80
-                            prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
-                            prose-li:text-white/80 prose-li:marker:text-white/30
-                            prose-code:text-emerald-300 prose-code:bg-white/[0.06] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-[''] prose-code:after:content-['']
-                            prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl
-                            prose-blockquote:border-l-white/20 prose-blockquote:text-white/55 prose-blockquote:not-italic
-                            prose-hr:border-white/10"
-                        >
+                        <div className={MARKDOWN_PROSE}>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {activeNote.content}
                           </ReactMarkdown>

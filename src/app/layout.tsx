@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: 'tzeedek-note — Secure Vault',
   description:
     'A cinematic, premium zero-knowledge vault for notes, passwords, and AI prompts.',
+  icons: { icon: '/icon.svg', apple: '/icon.svg' },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'tzeedek-note' },
 };
 
 export const viewport: Viewport = {
