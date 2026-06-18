@@ -197,3 +197,12 @@ input:-webkit-autofill:active {
 .animate-spin-reverse {
   animation: spin-reverse 1s linear infinite;
 }
+
+/* Twinkling stars in the cinematic hero */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.35); }
+}
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
