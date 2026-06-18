@@ -458,14 +458,14 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md"
+              className="absolute inset-0 bg-black/85 backdrop-blur-md"
             />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg glass-panel p-6 md:p-8 rounded-3xl bg-[#09090b] shadow-2xl border border-white/10 text-left max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-lg p-6 md:p-8 rounded-3xl bg-[#0f0f13] shadow-2xl border border-white/10 text-left max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-6">
                 <div>
@@ -579,7 +579,7 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setViewPromptId(null)}
-                className="absolute inset-0 bg-black/70 backdrop-blur-md"
+                className="absolute inset-0 bg-black/85 backdrop-blur-md"
               />
 
               <motion.div
@@ -587,7 +587,7 @@ export default function PromptsTab({ prompts, onUpdatePrompts, theme }: PromptsT
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-2xl glass-panel p-6 md:p-8 rounded-3xl bg-[#09090b] border border-white/10 shadow-2xl text-left max-h-[90vh] overflow-y-auto"
+                className="relative w-full max-w-2xl p-6 md:p-8 rounded-3xl bg-[#0f0f13] border border-white/10 shadow-2xl text-left max-h-[90vh] overflow-y-auto"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4 pb-4 border-b border-white/5 mb-5">

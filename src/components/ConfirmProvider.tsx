@@ -56,7 +56,7 @@ export default function ConfirmProvider({ children }: { children: React.ReactNod
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => close(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md"
+              className="absolute inset-0 bg-black/85 backdrop-blur-md"
             />
 
             <motion.div
@@ -64,7 +64,7 @@ export default function ConfirmProvider({ children }: { children: React.ReactNod
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-sm glass-panel rounded-3xl bg-[#09090b] border border-white/10 shadow-2xl p-6 text-center"
+              className="relative w-full max-w-sm rounded-3xl bg-[#0f0f13] border border-white/10 shadow-2xl p-6 text-center"
             >
               <div
                 className={`mx-auto mb-4 w-12 h-12 rounded-2xl flex items-center justify-center border ${

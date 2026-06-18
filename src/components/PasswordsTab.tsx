@@ -409,7 +409,7 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDrawerOpen(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md"
+              className="absolute inset-0 bg-black/85 backdrop-blur-md"
             />
 
             {/* Modal Body Container */}
@@ -417,7 +417,7 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-2xl glass-panel p-6 md:p-8 rounded-3xl bg-[#09090b] shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl p-6 md:p-8 rounded-3xl bg-[#0f0f13] shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-6">
