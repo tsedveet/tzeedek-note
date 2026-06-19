@@ -24,11 +24,25 @@ export default function OverviewTab({ notes, passwords, prompts, logs, theme, on
 
   const totalItems = activeNotes + activePasswords + activePrompts;
 
-  // Calculate weak passwords to assess system security health
-  const weakPasswordsCount = passwords.filter(p => p.strength === 'weak' && !p.isArchived).length;
-  const securityHealthScore = passwords.length > 0
-    ? Math.max(50, 100 - (weakPasswordsCount * 15))
-    : 100;
+  // Real security-health assessment from the user's actual passwords.
+  const activePw = passwords.filter(p => !p.isArchived);
+  const hasPasswords = activePw.length > 0;
+  const weakPasswordsCount = activePw.filter(p => p.strength === 'weak').length;
+  const mediumPasswordsCount = activePw.filter(p => p.strength === 'medium').length;
+  const pwCounts = new Map<string, number>();
+  activePw.forEach(p => pwCounts.set(p.passwordText, (pwCounts.get(p.passwordText) || 0) + 1));
+  const reusedPasswordsCount = activePw.filter(p => (pwCounts.get(p.passwordText) || 0) > 1).length;
+
+  const securityHealthScore = hasPasswords
+    ? Math.max(0, Math.min(100, 100 - weakPasswordsCount * 20 - mediumPasswordsCount * 8 - reusedPasswordsCount * 12))
+    : 0;
+
+  const scoreHex = !hasPasswords
+    ? '#52525b'
+    : securityHealthScore >= 80 ? '#10B981' : securityHealthScore >= 50 ? '#F59E0B' : '#F43F5E';
+  const scoreTextClass = !hasPasswords
+    ? 'text-white/40'
+    : securityHealthScore >= 80 ? 'text-emerald-400' : securityHealthScore >= 50 ? 'text-amber-400' : 'text-rose-400';
 
   const getThemeTextClass = () => {
     switch (theme) {
@@ -174,8 +188,19 @@ export default function OverviewTab({ notes, passwords, prompts, logs, theme, on
               
               {/* Radial gradient backing the score */}
               <div className="absolute inset-4 rounded-full bg-black/50 border border-white/5 flex flex-col items-center justify-center z-10 shadow-inner">
-                <span className="text-3xl font-display font-medium text-white tracking-tight">{securityHealthScore}%</span>
-                <span className="text-[9px] font-mono text-white/30 tracking-widest mt-0.5">SECURE</span>
+                {hasPasswords ? (
+                  <>
+                    <span className={`text-3xl font-display font-medium tracking-tight ${scoreTextClass}`}>{securityHealthScore}%</span>
+                    <span className="text-[9px] font-mono text-white/30 tracking-widest mt-0.5">
+                      {securityHealthScore >= 80 ? 'SECURE' : securityHealthScore >= 50 ? 'OK' : 'RISK'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-3xl font-display font-light text-white/40">—</span>
+                    <span className="text-[8px] font-mono text-white/30 tracking-widest mt-1 text-center px-2">НУУЦ ҮГ АЛГА</span>
+                  </>
+                )}
               </div>
 
               {/* Dynamic SVG Ring tracker */}
@@ -192,9 +217,9 @@ export default function OverviewTab({ notes, passwords, prompts, logs, theme, on
                   cx="50"
                   cy="50"
                   r="42"
-                  stroke={theme === 'emerald' ? '#10B981' : theme === 'voltage' ? '#0EA5E9' : theme === 'indigo' ? '#8B5CF6' : '#94A3B8'}
+                  stroke={scoreHex}
                   strokeWidth="5"
-                  strokeDasharray={`${securityHealthScore * 2.63} 1000`}
+                  strokeDasharray={`${(hasPasswords ? securityHealthScore : 0) * 2.63} 1000`}
                   strokeLinecap="round"
                   fill="none"
                   className="transition-all duration-1000 opacity-80"
@@ -203,15 +228,25 @@ export default function OverviewTab({ notes, passwords, prompts, logs, theme, on
             </div>
           </div>
 
-          <div className="space-y-3 bg-black/30 p-3.5 rounded-xl border border-white/5 text-xs text-white/60">
+          <div className="space-y-2.5 bg-black/30 p-3.5 rounded-xl border border-white/5 text-xs text-white/60">
             <div className="flex items-center justify-between">
               <span className="font-mono">AES Зэрэглэл:</span>
               <span className="text-emerald-400 font-semibold">[ ИДЭВХТЭЙ ]</span>
             </div>
             <div className="flex items-center justify-between">
+              <span className="font-mono">Нийт нууц үг:</span>
+              <span className="text-white/70 font-semibold">{activePw.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="font-mono">Сул нууц үг:</span>
               <span className={weakPasswordsCount > 0 ? 'text-rose-400 font-semibold animate-pulse' : 'text-white/40'}>
-                {weakPasswordsCount} Сэрэмжлүүлэг
+                {weakPasswordsCount}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono">Давхардсан:</span>
+              <span className={reusedPasswordsCount > 0 ? 'text-amber-400 font-semibold' : 'text-white/40'}>
+                {reusedPasswordsCount}
               </span>
             </div>
           </div>
