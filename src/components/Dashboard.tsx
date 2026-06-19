@@ -20,6 +20,8 @@ import ArchiveTab from './ArchiveTab';
 import SettingsTab from './SettingsTab';
 import CommandPalette from './CommandPalette';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './ToastProvider';
+import { encryptVault, decryptVault } from '@/lib/crypto-client';
 
 interface DashboardProps {
   user: VaultUser;
@@ -38,8 +40,11 @@ interface DashboardProps {
   ) => void;
   onLogOut: () => void;
   onClearAllData: () => void;
+  onLock: () => void;
   autoLockMin: number;
   setAutoLockMin: (m: number) => void;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  encKey: CryptoKey | null;
 }
 
 export default function Dashboard({
@@ -53,10 +58,14 @@ export default function Dashboard({
   onUpdateAppStore,
   onLogOut,
   onClearAllData,
+  onLock,
   autoLockMin,
-  setAutoLockMin
+  setAutoLockMin,
+  saveStatus,
+  encKey
 }: DashboardProps) {
   const confirm = useConfirm();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<VaultTab>('overview');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -146,23 +155,72 @@ export default function Dashboard({
     }
   };
 
-  const exportDatabase = () => {
-    const dbDump = {
-      notes,
-      passwords,
-      prompts,
-      logs,
-      exportedAt: new Date().toISOString(),
-      email: user.email
-    };
+  // Encrypted backup: the file holds only AES-GCM ciphertext, decryptable with
+  // the same vault passphrase (i.e. while signed in to this account).
+  const handleExportBackup = async () => {
+    if (!encKey) return;
+    try {
+      const blob = await encryptVault(encKey, { notes, passwords, prompts });
+      const file = {
+        app: 'tzeedek-note',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        email: user.email,
+        iv: blob.iv,
+        ciphertext: blob.ciphertext,
+      };
+      const href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(file, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', href);
+      a.setAttribute('download', `tzeedek-note-backup-${user.email.replace(/[@.]/g, '_')}.vault.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast('Шифрлэгдсэн backup татагдлаа', 'success');
+    } catch (err) {
+      console.error('export error', err);
+      toast('Backup үүсгэхэд алдаа гарлаа', 'error');
+    }
+  };
 
-    const dataCsv = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(dbDump, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataCsv);
-    downloadAnchor.setAttribute('download', `tzeedek-note_backup_${user.email.replace(/[@.]/g, '_')}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  const handleImportBackup = async (file: File) => {
+    if (!encKey) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed?.iv || !parsed?.ciphertext) {
+        toast('Буруу backup файл байна', 'error');
+        return;
+      }
+      const data = await decryptVault<{ notes?: Note[]; passwords?: PasswordEntry[]; prompts?: AIPrompt[] }>(
+        encKey,
+        { iv: parsed.iv, ciphertext: parsed.ciphertext },
+      );
+      const rand = () => Math.random().toString(36).slice(2, 8);
+      const importedNotes = (data.notes || []).map((n) => ({ ...n, id: `note-${Date.now()}-${rand()}` }));
+      const importedPasswords = (data.passwords || []).map((p) => ({ ...p, id: `pass-${Date.now()}-${rand()}` }));
+      const importedPrompts = (data.prompts || []).map((p) => ({ ...p, id: `prompt-${Date.now()}-${rand()}` }));
+      const count = importedNotes.length + importedPasswords.length + importedPrompts.length;
+
+      const importLog: VaultLog = {
+        id: `log-${Date.now()}`,
+        action: 'IMPORT',
+        type: 'system',
+        timestamp: new Date().toISOString(),
+        details: `Backup-аас ${count} зүйл сэргээв`,
+      };
+
+      onUpdateAppStore(
+        [...importedNotes, ...notes],
+        [...importedPasswords, ...passwords],
+        [...importedPrompts, ...prompts],
+        [importLog, ...logs],
+        'Backup сэргээв',
+      );
+      toast(`Сэргээлээ: ${count} зүйл нэмэгдлээ`, 'success');
+    } catch (err) {
+      console.error('import error', err);
+      toast('Тайлж чадсангүй — backup өөр нууц үгээр шифрлэгдсэн байж магадгүй', 'error');
+    }
   };
 
   const getThemeTextClass = () => {
@@ -262,7 +320,7 @@ export default function Dashboard({
           </div>
 
           <button
-            onClick={onLogOut}
+            onClick={onLock}
             className={`w-full flex items-center py-2 px-3 hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 rounded-xl transition cursor-pointer border border-transparent hover:border-rose-500/15 ${
               isSidebarCollapsed ? 'justify-center' : 'justify-start space-x-3'
             }`}
@@ -302,7 +360,7 @@ export default function Dashboard({
             <Archive className="w-4.5 h-4.5" />
           </button>
           <button
-            onClick={onLogOut}
+            onClick={onLock}
             className="p-2 rounded-lg text-rose-400 hover:bg-rose-500/10 transition"
             title="Сейфийг түгжих"
           >
@@ -320,6 +378,20 @@ export default function Dashboard({
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-white/35">ОРЧИН:</span>
             <span className="text-white/70 font-semibold">[ ЛОКАЛ САНДБОКС ]</span>
+            {saveStatus !== 'idle' && (
+              <span
+                className={`flex items-center gap-1.5 ${
+                  saveStatus === 'error' ? 'text-rose-400' : saveStatus === 'saved' ? 'text-emerald-400' : 'text-white/40'
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    saveStatus === 'error' ? 'bg-rose-400' : saveStatus === 'saved' ? 'bg-emerald-400' : 'bg-white/40 animate-pulse'
+                  }`}
+                />
+                {saveStatus === 'saving' ? 'Хадгалж байна…' : saveStatus === 'saved' ? 'Хадгалагдлаа' : 'Хадгалах алдаа'}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -410,7 +482,8 @@ export default function Dashboard({
                   setTheme={setTheme}
                   onClearAllData={onClearAllData}
                   onLogOut={onLogOut}
-                  exportDatabase={exportDatabase}
+                  onExportBackup={handleExportBackup}
+                  onImportBackup={handleImportBackup}
                   autoLockMin={autoLockMin}
                   setAutoLockMin={setAutoLockMin}
                 />

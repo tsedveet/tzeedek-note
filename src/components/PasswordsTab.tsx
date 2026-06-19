@@ -484,6 +484,21 @@ export default function PasswordsTab({ passwords, onUpdatePasswords, theme }: Pa
                       placeholder="Кодоо энд оруулна уу"
                       className="block w-full bg-black/40 border border-white/5 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-white/10 transition font-mono"
                     />
+                    {passwordText && (() => {
+                      const s = checkStrength(passwordText);
+                      const pct = s === 'strong' ? 100 : s === 'medium' ? 62 : 28;
+                      const bar = s === 'strong' ? 'bg-emerald-500' : s === 'medium' ? 'bg-amber-400' : 'bg-rose-500';
+                      const txt = s === 'strong' ? 'text-emerald-400' : s === 'medium' ? 'text-amber-400' : 'text-rose-400';
+                      const label = s === 'strong' ? 'Хүчтэй' : s === 'medium' ? 'Дундаж' : 'Сул';
+                      return (
+                        <div className="flex items-center gap-2 pt-1">
+                          <div className="grow h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className={`h-full ${bar} transition-all duration-300`} style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className={`text-[10px] font-mono shrink-0 ${txt}`}>{label}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="space-y-1.5">

@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Settings, Shield, HardDrive, Download, AlertOctagon, RefreshCw, KeyRound, Clock, User, LogOut } from 'lucide-react';
+import { Settings, Shield, HardDrive, Download, Upload, AlertOctagon, RefreshCw, KeyRound, Clock, User, LogOut } from 'lucide-react';
 import { VaultTheme, VaultUser } from '../types';
 import { useConfirm } from './ConfirmProvider';
 
@@ -15,12 +15,13 @@ interface SettingsTabProps {
   setTheme: (t: VaultTheme) => void;
   onClearAllData: () => void;
   onLogOut: () => void;
-  exportDatabase: () => void;
+  onExportBackup: () => void;
+  onImportBackup: (file: File) => void;
   autoLockMin: number;
   setAutoLockMin: (m: number) => void;
 }
 
-export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, exportDatabase, autoLockMin, setAutoLockMin }: SettingsTabProps) {
+export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, onExportBackup, onImportBackup, autoLockMin, setAutoLockMin }: SettingsTabProps) {
   const confirm = useConfirm();
   const [isDestructing, setIsDestructing] = useState(false);
 
@@ -173,20 +174,35 @@ export default function SettingsTab({ user, theme, setTheme, onClearAllData, onL
           {/* Back up Database section */}
           <div className="glass-panel p-5 rounded-2xl bg-black/40 border border-white/5 space-y-4">
             <h3 className="text-xs font-mono tracking-widest text-white/50 uppercase flex items-center gap-1.5 font-semibold">
-              <Download className="w-4 h-4 text-white/40" /> Нөөц хуулбар татах
+              <Download className="w-4 h-4 text-white/40" /> Нөөцлөх & Сэргээх
             </h3>
 
             <p className="text-xs text-white/40 leading-relaxed">
-              Та өөрийн локал сейфийг бүрэн хэмжээгээр эх хувиар (JSON хэлбэртэй) татаж авч аюулгүй газар хадгална уу. Төхөөрөмжөө солих тохиолдолд үүнийг ашиглаж болно.
+              Сейфээ <span className="text-white/60">шифрлэгдсэн</span> файлаар татаж авч аюулгүй хадгална уу. Файл нь зөвхөн таны vault нууц үгээр тайлагдана.
             </p>
 
             <button
-              onClick={exportDatabase}
+              onClick={onExportBackup}
               className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-semibold cursor-pointer transition flex items-center justify-center space-x-1.5"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Шифрлэгдсэн нөөц хуудас (JSON) авах</span>
+              <span>Шифрлэгдсэн backup татах</span>
             </button>
+
+            <label className="w-full py-2.5 bg-black/30 hover:bg-white/5 border border-white/10 text-white/80 rounded-xl text-xs font-semibold cursor-pointer transition flex items-center justify-center space-x-1.5">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Backup-аас сэргээх</span>
+              <input
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onImportBackup(f);
+                  e.target.value = '';
+                }}
+              />
+            </label>
           </div>
 
           {/* Secure Self-Destruct trigger (Factory resetting) */}

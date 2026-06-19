@@ -11,17 +11,21 @@ import { Note, PasswordEntry, AIPrompt, VaultLog, VaultTheme, VaultUser } from '
 import {
   decryptVault,
   encryptVault,
+  deriveKeys,
+  cacheEncKey,
   loadCachedEncKey,
   clearCachedEncKey,
 } from '@/lib/crypto-client';
 import {
   fetchSession,
+  fetchSalt,
   saveVault,
   logoutVault,
   deleteVault,
   VaultData,
   PendingGoogle,
 } from '@/lib/api-client';
+import LockScreen from './LockScreen';
 import VaultBackground from './VaultBackground';
 import CinematicHero from './CinematicHero';
 import AuthScreen from './AuthScreen';
@@ -41,6 +45,8 @@ export default function VaultApp() {
   const [pendingGoogle, setPendingGoogle] = useState<PendingGoogle | null>(null);
   const [authError, setAuthError] = useState('');
   const [autoLockMin, setAutoLockMin] = useState(15); // 0 = never
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [locked, setLocked] = useState(false);
 
   // Core App Store States (loaded on auth, decrypted client-side)
   const [notes, setNotes] = useState<Note[]>([]);
@@ -79,9 +85,10 @@ export default function VaultApp() {
         } else if (session?.pendingGoogle) {
           // Signed in with Google; awaiting the vault passphrase.
           setPendingGoogle(session.pendingGoogle);
-        } else if (session?.user && !cachedKey) {
-          // Server session exists but the in-browser key is gone — require re-login.
-          await logoutVault();
+        } else if (session?.user) {
+          // Server session valid but the in-browser key is gone → show the lock screen.
+          setUser(session.user);
+          setLocked(true);
         }
       } catch {
         clearCachedEncKey();
@@ -94,22 +101,11 @@ export default function VaultApp() {
   // Auto-lock the vault after a period of inactivity. The latest data is already
   // saved on every edit, so locking just clears the session + in-memory keys.
   useEffect(() => {
-    if (!isLoggedIn || autoLockMin <= 0) return;
+    if (!isLoggedIn || locked || autoLockMin <= 0) return;
     let timer: ReturnType<typeof setTimeout>;
-    const lock = async () => {
-      await logoutVault();
-      clearCachedEncKey();
-      setIsLoggedIn(false);
-      setUser(null);
-      setEncKey(null);
-      setNotes([]);
-      setPasswords([]);
-      setPrompts([]);
-      setLogs([]);
-    };
     const reset = () => {
       clearTimeout(timer);
-      timer = setTimeout(lock, autoLockMin * 60 * 1000);
+      timer = setTimeout(() => softLock(), autoLockMin * 60 * 1000);
     };
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
     events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
@@ -118,7 +114,38 @@ export default function VaultApp() {
       clearTimeout(timer);
       events.forEach((e) => window.removeEventListener(e, reset));
     };
-  }, [isLoggedIn, autoLockMin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, locked, autoLockMin]);
+
+  // Soft lock: clear the in-browser key + data but keep the server session, so
+  // the user re-unlocks with just the vault passphrase. Edits are already saved.
+  const softLock = () => {
+    clearCachedEncKey();
+    setEncKey(null);
+    setNotes([]);
+    setPasswords([]);
+    setPrompts([]);
+    setLogs([]);
+    setLocked(true);
+  };
+
+  const handleUnlock = async (passphrase: string) => {
+    if (!user) throw new Error('Хэрэглэгч олдсонгүй.');
+    const { salt } = await fetchSalt(user.email);
+    const { encKey: key } = await deriveKeys(passphrase, salt);
+    const session = await fetchSession();
+    if (!session?.vault) throw new Error('Сейф олдсонгүй. Дахин нэвтэрнэ үү.');
+    const data = await decryptVault<VaultData>(key, session.vault); // wrong passphrase → throws
+    setEncKey(key);
+    setNotes(data.notes || []);
+    setPasswords(data.passwords || []);
+    setPrompts(data.prompts || []);
+    setLogs(data.logs || []);
+    await cacheEncKey(key);
+    setUser(session.user ?? user);
+    setIsLoggedIn(true);
+    setLocked(false);
+  };
 
   const handleThemeChange = (newTheme: VaultTheme) => {
     setTheme(newTheme);
@@ -170,9 +197,17 @@ export default function VaultApp() {
       prompts: updatedPrompts,
       logs: trimmedLogs,
     };
+    setSaveStatus('saving');
     encryptVault(encKey, data)
       .then((blob) => saveVault(blob))
-      .catch((err) => console.error('Сейфийг хадгалахад алдаа гарлаа:', err));
+      .then(() => {
+        setSaveStatus('saved');
+        window.setTimeout(() => setSaveStatus((s) => (s === 'saved' ? 'idle' : s)), 1600);
+      })
+      .catch((err) => {
+        console.error('Сейфийг хадгалахад алдаа гарлаа:', err);
+        setSaveStatus('error');
+      });
   };
 
   const handleLogOut = async () => {
@@ -213,6 +248,7 @@ export default function VaultApp() {
   const resetState = () => {
     clearCachedEncKey();
     setIsLoggedIn(false);
+    setLocked(false);
     setUser(null);
     setEncKey(null);
     setNotes([]);
@@ -233,6 +269,8 @@ export default function VaultApp() {
           <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-white/60 animate-spin" />
           <span className="text-[11px] font-mono tracking-[0.3em] uppercase">Сейфийг ачааллаж байна…</span>
         </div>
+      ) : locked && user ? (
+        <LockScreen user={user} theme={theme} onUnlock={handleUnlock} onLogout={handleLogOut} />
       ) : (
         <AnimatePresence mode="wait">
           {!isLoggedIn ? (
@@ -285,8 +323,11 @@ export default function VaultApp() {
                   onUpdateAppStore={handleUpdateAppStore}
                   onLogOut={handleLogOut}
                   onClearAllData={handleClearAllData}
+                  onLock={softLock}
                   autoLockMin={autoLockMin}
                   setAutoLockMin={handleAutoLockChange}
+                  saveStatus={saveStatus}
+                  encKey={encKey}
                 />
               )}
             </motion.div>
