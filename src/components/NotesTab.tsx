@@ -16,7 +16,7 @@ const MARKDOWN_PROSE =
   'prose prose-invert prose-sm max-w-none break-words ' +
   'prose-headings:font-display prose-headings:text-white prose-headings:tracking-tight ' +
   'prose-p:text-white/80 prose-strong:text-white prose-em:text-white/80 ' +
-  'prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline ' +
+  'prose-a:text-emerald-400 prose-a:no-underline [&_a:hover]:underline ' +
   'prose-li:text-white/80 prose-li:marker:text-white/30 ' +
   "prose-code:text-emerald-300 prose-code:bg-white/[0.06] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-[''] prose-code:after:content-[''] " +
   'prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl ' +
