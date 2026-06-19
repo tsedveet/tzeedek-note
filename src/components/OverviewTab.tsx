@@ -244,6 +244,12 @@ export default function OverviewTab({ notes, passwords, prompts, logs, theme, on
               </span>
             </div>
             <div className="flex items-center justify-between">
+              <span className="font-mono">Дундаж хүч:</span>
+              <span className={mediumPasswordsCount > 0 ? 'text-amber-400/80 font-semibold' : 'text-white/40'}>
+                {mediumPasswordsCount}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="font-mono">Давхардсан:</span>
               <span className={reusedPasswordsCount > 0 ? 'text-amber-400 font-semibold' : 'text-white/40'}>
                 {reusedPasswordsCount}
