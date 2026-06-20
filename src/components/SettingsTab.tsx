@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import { Settings, Shield, HardDrive, Download, Upload, AlertOctagon, RefreshCw, KeyRound, Clock, User, LogOut } from 'lucide-react';
 import { VaultTheme, VaultUser } from '../types';
 import { useConfirm } from './ConfirmProvider';
+import { useToast } from './ToastProvider';
 
 interface SettingsTabProps {
   user: VaultUser | null;
@@ -17,13 +18,45 @@ interface SettingsTabProps {
   onLogOut: () => void;
   onExportBackup: () => void;
   onImportBackup: (file: File) => void;
+  onChangePassphrase: (current: string, next: string) => Promise<void>;
   autoLockMin: number;
   setAutoLockMin: (m: number) => void;
 }
 
-export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, onExportBackup, onImportBackup, autoLockMin, setAutoLockMin }: SettingsTabProps) {
+export default function SettingsTab({ user, theme, setTheme, onClearAllData, onLogOut, onExportBackup, onImportBackup, onChangePassphrase, autoLockMin, setAutoLockMin }: SettingsTabProps) {
   const confirm = useConfirm();
+  const toast = useToast();
   const [isDestructing, setIsDestructing] = useState(false);
+
+  const [curPass, setCurPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [changingPw, setChangingPw] = useState(false);
+
+  const handleChangePass = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!curPass || !newPass) return;
+    if (newPass.length < 6) {
+      toast('Шинэ нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой.', 'error');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      toast('Шинэ нууц үг таарахгүй байна.', 'error');
+      return;
+    }
+    setChangingPw(true);
+    try {
+      await onChangePassphrase(curPass, newPass);
+      toast('Master нууц үг амжилттай солигдлоо.', 'success');
+      setCurPass('');
+      setNewPass('');
+      setConfirmPass('');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Нууц үг солиход алдаа гарлаа.', 'error');
+    } finally {
+      setChangingPw(false);
+    }
+  };
 
   const handleSelfDestruct = async () => {
     const ok = await confirm({
@@ -164,6 +197,47 @@ export default function SettingsTab({ user, theme, setTheme, onClearAllData, onL
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Change master passphrase */}
+          <div className="glass-panel p-5 rounded-2xl bg-black/40 border border-white/5 space-y-4">
+            <h3 className="text-xs font-mono tracking-widest text-white/50 uppercase flex items-center gap-1.5 font-semibold">
+              <KeyRound className="w-4 h-4 text-white/40" /> Master нууц үг солих
+            </h3>
+            <p className="text-xs text-white/40 leading-relaxed">
+              Шинэ нууц үгээр сейфийг дахин шифрлэнэ. Энэ нь таны шифрлэлтийн түлхүүр тул мартаж болохгүй.
+            </p>
+            <form onSubmit={handleChangePass} className="space-y-2.5">
+              <input
+                type="password"
+                value={curPass}
+                onChange={(e) => setCurPass(e.target.value)}
+                placeholder="Одоогийн нууц үг"
+                className="block w-full bg-black/40 border border-white/5 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-white/10 transition font-mono"
+              />
+              <input
+                type="password"
+                value={newPass}
+                onChange={(e) => setNewPass(e.target.value)}
+                placeholder="Шинэ нууц үг"
+                className="block w-full bg-black/40 border border-white/5 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-white/10 transition font-mono"
+              />
+              <input
+                type="password"
+                value={confirmPass}
+                onChange={(e) => setConfirmPass(e.target.value)}
+                placeholder="Шинэ нууц үг (давтах)"
+                className="block w-full bg-black/40 border border-white/5 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-white/10 transition font-mono"
+              />
+              <button
+                type="submit"
+                disabled={changingPw}
+                className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-xs font-semibold cursor-pointer transition flex items-center justify-center space-x-1.5 disabled:opacity-60"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>{changingPw ? 'Солиж байна…' : 'Нууц үг солих'}</span>
+              </button>
+            </form>
           </div>
 
         </div>

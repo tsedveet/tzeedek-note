@@ -12,6 +12,7 @@ import {
   decryptVault,
   encryptVault,
   deriveKeys,
+  generateSalt,
   cacheEncKey,
   loadCachedEncKey,
   clearCachedEncKey,
@@ -22,6 +23,7 @@ import {
   saveVault,
   logoutVault,
   deleteVault,
+  changePassphrase,
   VaultData,
   PendingGoogle,
 } from '@/lib/api-client';
@@ -167,6 +169,19 @@ export default function VaultApp() {
     setIsLoggedIn(true);
     setPendingGoogle(null);
     setAuthError('');
+  };
+
+  // Change the master passphrase: re-derive keys + re-encrypt the whole vault.
+  const handleChangePassphrase = async (currentPass: string, newPass: string) => {
+    if (!user || !encKey) throw new Error('Сейф нээгдээгүй байна.');
+    const { salt: currentSalt } = await fetchSalt(user.email);
+    const { authHash: currentAuthHash } = await deriveKeys(currentPass, currentSalt);
+    const newSalt = generateSalt();
+    const { authHash: newAuthHash, encKey: newEncKey } = await deriveKeys(newPass, newSalt);
+    const blob = await encryptVault(newEncKey, { notes, passwords, prompts, logs });
+    await changePassphrase({ currentAuthHash, newSalt, newAuthHash, vault: blob });
+    setEncKey(newEncKey);
+    await cacheEncKey(newEncKey);
   };
 
   // User backed out of the Google passphrase step — clear the pending identity.
@@ -324,6 +339,7 @@ export default function VaultApp() {
                   onLogOut={handleLogOut}
                   onClearAllData={handleClearAllData}
                   onLock={softLock}
+                  onChangePassphrase={handleChangePassphrase}
                   autoLockMin={autoLockMin}
                   setAutoLockMin={handleAutoLockChange}
                   saveStatus={saveStatus}

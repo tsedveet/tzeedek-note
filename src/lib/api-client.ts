@@ -115,6 +115,20 @@ export async function saveVault(vault: EncryptedBlob): Promise<void> {
   await jsonOrThrow(res);
 }
 
+export async function changePassphrase(params: {
+  currentAuthHash: string;
+  newSalt: string;
+  newAuthHash: string;
+  vault: EncryptedBlob;
+}): Promise<void> {
+  const res = await fetch('/api/auth/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  await jsonOrThrow(res);
+}
+
 export async function logoutVault(): Promise<void> {
   await fetch('/api/auth/logout', { method: 'POST' });
 }

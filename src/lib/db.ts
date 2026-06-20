@@ -97,6 +97,22 @@ export async function saveVaultBlob(id: number, vaultIv: string, vaultCt: string
   `;
 }
 
+export async function updatePassphrase(
+  id: number,
+  salt: string,
+  authVerifier: string,
+  vaultIv: string,
+  vaultCt: string,
+): Promise<void> {
+  await ensureSchema();
+  const sql = getSql();
+  await sql`
+    UPDATE vault_users
+    SET salt = ${salt}, auth_verifier = ${authVerifier}, vault_iv = ${vaultIv}, vault_ct = ${vaultCt}, updated_at = now()
+    WHERE id = ${id}
+  `;
+}
+
 export async function deleteUser(id: number): Promise<void> {
   const sql = getSql();
   await sql`DELETE FROM vault_users WHERE id = ${id}`;

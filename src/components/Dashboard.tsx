@@ -41,6 +41,7 @@ interface DashboardProps {
   onLogOut: () => void;
   onClearAllData: () => void;
   onLock: () => void;
+  onChangePassphrase: (current: string, next: string) => Promise<void>;
   autoLockMin: number;
   setAutoLockMin: (m: number) => void;
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
@@ -59,6 +60,7 @@ export default function Dashboard({
   onLogOut,
   onClearAllData,
   onLock,
+  onChangePassphrase,
   autoLockMin,
   setAutoLockMin,
   saveStatus,
@@ -484,6 +486,7 @@ export default function Dashboard({
                   onLogOut={onLogOut}
                   onExportBackup={handleExportBackup}
                   onImportBackup={handleImportBackup}
+                  onChangePassphrase={onChangePassphrase}
                   autoLockMin={autoLockMin}
                   setAutoLockMin={setAutoLockMin}
                 />

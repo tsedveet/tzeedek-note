@@ -7,9 +7,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { findUserByEmail, incrementLoginCount } from '@/lib/db';
 import { createSession } from '@/lib/session';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    if (!rateLimit(`login:${clientIp(req)}`, 10, 60_000)) {
+      return NextResponse.json({ error: 'Хэт олон оролдлого. Түр хүлээгээд дахин оролдоно уу.' }, { status: 429 });
+    }
     const { email, authHash } = await req.json();
     if (!email || !authHash) {
       return NextResponse.json({ error: 'Имэйл болон түлхүүр шаардлагатай.' }, { status: 400 });
