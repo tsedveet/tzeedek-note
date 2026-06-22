@@ -246,7 +246,7 @@ export default function Dashboard({
   ];
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden p-3 md:p-4 bg-transparent text-white font-sans">
+    <div className="flex h-[100dvh] w-full overflow-hidden p-3 md:p-4 bg-transparent text-white font-sans">
       
       {/* DESKTOP SIDEBAR */}
       <motion.aside
